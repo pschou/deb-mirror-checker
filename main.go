@@ -50,7 +50,7 @@ func main() {
 }
 
 func parse(name string) {
-	//fmt.Println("Checking", name)
+	fmt.Println("Checking", name)
 	file, err := os.OpenFile(name, os.O_RDONLY, 0666)
 	if err != nil {
 		log.Println(err)
@@ -63,9 +63,11 @@ func parse(name string) {
 		log.Println(err)
 		return
 	}
+	defer zr.Close()
 
 	scanner := bufio.NewScanner(zr)
 	var size, h_sha256, h_sha1, h_md5, filename string
+parse_line:
 	for line := scanner.Text(); scanner.Scan(); line = scanner.Text() {
 		parts := strings.SplitN(line, ": ", 2)
 		val := ""
@@ -87,14 +89,18 @@ func parse(name string) {
 			dir_name, file_name := path.Split(filename)
 			sum_name := path.Join(dir_name, fmt.Sprintf(".%s.sum", file_name))
 
+			if _, err := os.Stat(sum_name); os.IsNotExist(err) {
+				processFile(filename)
+			}
+
 			sum_file, err := os.OpenFile(sum_name, os.O_RDONLY, 0666)
 			if err != nil {
 				//log.Println(err)
 				fmt.Println("missing", filename)
-				continue
+				continue parse_line
 				//return
 			}
-			defer sum_file.Close()
+			//defer sum_file.Close()
 
 			sum_scanner := bufio.NewScanner(sum_file)
 			for line := sum_scanner.Text(); sum_scanner.Scan(); line = sum_scanner.Text() {
@@ -107,25 +113,30 @@ func parse(name string) {
 				case "Size":
 					if size != val {
 						fmt.Println("failed", filename)
-						return
+						sum_file.Close()
+						continue parse_line
 					}
 				case "MD5sum":
 					if h_md5 != val {
 						fmt.Println("failed", filename)
-						return
+						sum_file.Close()
+						continue parse_line
 					}
 				case "SHA1":
 					if h_sha1 != val {
 						fmt.Println("failed", filename)
-						return
+						sum_file.Close()
+						continue parse_line
 					}
 				case "SHA256":
 					if h_sha256 != val {
 						fmt.Println("failed", filename)
-						return
+						sum_file.Close()
+						continue parse_line
 					}
 				}
 			}
+			sum_file.Close()
 
 		}
 	}
@@ -170,11 +181,11 @@ func processFile(name string) {
 	}
 
 	file, err := os.OpenFile(name, os.O_RDONLY, 0666)
+	defer file.Close()
 	if err != nil {
 		log.Println(err)
 		return
 	}
-	defer file.Close()
 
 	h_md5 := md5.New()
 	h_sha1 := sha1.New()

@@ -5,3 +5,14 @@ The intended purpose of this tool is to be able to scan a mirror quickly for any
 ```bash
 ./ubunt-mirror-checker $( find dists/ -type f -mtime -10 -name Packages.gz )
 ```
+
+# Usage
+
+```bash
+$ ./ubunt-mirror-checker
+Ubunbtu mirror checker
+Usage:
+  make [path...] - generate all the .sum files in a directory
+  check [file]   - Read in Packages.gz and verify all the files
+
+```

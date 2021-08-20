@@ -50,7 +50,7 @@ func process(name string) {
 	}
 }
 
-var buf = make([][]byte, 2, 512*1024)
+var buf = make([][]byte, 2)
 
 func processFile(name string) {
 	dir_name, file_name := path.Split(name)
@@ -84,7 +84,9 @@ func processFile(name string) {
 
 	i := 0
 	for {
-		i = 1 - i
+		if len(buf[i]) == 0 {
+			buf[i] = make([]byte, 512*1024)
+		}
 		n, err := file.Read(buf[i])
 		if err != nil {
 			if err == io.EOF {
@@ -114,6 +116,7 @@ func processFile(name string) {
 			h_sha512.Write(to_write)
 		}()
 		total = total + uint64(n)
+		i = 1 - i
 	}
 	wg.Wait()
 

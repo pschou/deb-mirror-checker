@@ -1,4 +1,4 @@
-PROG_NAME := "ubuntu-mirror-checker"
+PROG_NAME := "deb-mirror-checker"
 VERSION = 0.1.$(shell date +%Y%m%d.%H%M)
 FLAGS := "-s -w -X main.version=${VERSION}"
 

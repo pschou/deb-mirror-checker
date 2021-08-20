@@ -18,6 +18,7 @@ import (
 	"crypto/md5"
 	"crypto/sha1"
 	"crypto/sha256"
+	"crypto/sha512"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -25,6 +26,7 @@ import (
 	"os"
 	"path"
 	"strings"
+	"sync"
 )
 
 func process(name string) {
@@ -48,7 +50,7 @@ func process(name string) {
 	}
 }
 
-var buf = make([]byte, 512*1024)
+var buf = make([][]byte, 2, 512*1024)
 
 func processFile(name string) {
 	dir_name, file_name := path.Split(name)
@@ -75,10 +77,15 @@ func processFile(name string) {
 	h_md5 := md5.New()
 	h_sha1 := sha1.New()
 	h_sha256 := sha256.New()
+	h_sha512 := sha512.New()
 	total := uint64(0)
 
+	var wg sync.WaitGroup
+
+	i := 0
 	for {
-		n, err := file.Read(buf)
+		i = 1 - i
+		n, err := file.Read(buf[i])
 		if err != nil {
 			if err == io.EOF {
 				break
@@ -86,19 +93,29 @@ func processFile(name string) {
 			log.Println(err)
 			return
 		}
+		wg.Wait()
 
-		if n < len(buf) {
-			to_write := buf[:n]
+		to_write := buf[i][:n]
+		wg.Add(4)
+		go func() {
+			defer wg.Done()
 			h_md5.Write(to_write)
+		}()
+		go func() {
+			defer wg.Done()
 			h_sha1.Write(to_write)
+		}()
+		go func() {
+			defer wg.Done()
 			h_sha256.Write(to_write)
-		} else {
-			h_md5.Write(buf)
-			h_sha1.Write(buf)
-			h_sha256.Write(buf)
-		}
+		}()
+		go func() {
+			defer wg.Done()
+			h_sha512.Write(to_write)
+		}()
 		total = total + uint64(n)
 	}
+	wg.Wait()
 
 	out, err := os.Create(sum_name)
 	if err != nil {
@@ -110,4 +127,5 @@ func processFile(name string) {
 	fmt.Fprintf(out, "MD5sum: %x\n", h_md5.Sum(nil))
 	fmt.Fprintf(out, "SHA1: %x\n", h_sha1.Sum(nil))
 	fmt.Fprintf(out, "SHA256: %x\n", h_sha256.Sum(nil))
+	fmt.Fprintf(out, "SHA512: %x\n", h_sha512.Sum(nil))
 }

@@ -92,7 +92,7 @@ func parse(name string) {
 	}
 
 	scanner := bufio.NewScanner(zr)
-	var size, h_sha256, h_sha1, h_md5, filename string
+	var size, h_sha512, h_sha256, h_sha1, h_md5, filename string
 parse_line:
 	for line := scanner.Text(); scanner.Scan(); line = scanner.Text() {
 		parts := strings.SplitN(line, ": ", 2)
@@ -111,6 +111,8 @@ parse_line:
 			h_sha1 = val
 		case "SHA256":
 			h_sha256 = val
+		case "SHA512":
+			h_sha512 = val
 		case "":
 			if filename != "" {
 
@@ -167,10 +169,16 @@ parse_line:
 							sum_file.Close()
 							continue parse_line
 						}
+					case "SHA512":
+						if h_sha512 != val && h_sha512 != "" {
+							fmt.Println("failed", filename)
+							sum_file.Close()
+							continue parse_line
+						}
 					}
 				}
 				sum_file.Close()
-				size, h_sha256, h_sha1, h_md5, filename = "", "", "", "", ""
+				size, h_sha512, h_sha256, h_sha1, h_md5, filename = "", "", "", "", "", ""
 			}
 
 		}

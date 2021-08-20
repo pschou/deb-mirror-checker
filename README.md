@@ -29,5 +29,5 @@ Let's say we want to download only the newest files for a package, we can do thi
 ```bash
 $ ./ubuntu-mirror-checker mtime 2021-08-01 https://archive.ubuntu.com/ubuntu https://archive.ubuntu.com/ubuntu/dists/focal-updates/main/binary-amd64/Packages.xz > newer.list
 $ sed 's#^[0-9]* #https://archive.ubuntu.com/ubuntu/#' newer.list > newer_url.list
-$ wget -nc -np -i newer_url.list
+$ wget -nc -np -x -i newer_url.list
 ```

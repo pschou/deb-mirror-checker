@@ -41,3 +41,8 @@ $ ./deb-mirror-checker mtime 2021-07-01 https://archive.ubuntu.com/ubuntu $( fin
 $ sed 's#^[0-9]* #https://archive.ubuntu.com/ubuntu/#' newer.list > newer_url.list
 $ wget -nc -x -i newer_url.list
 ```
+
+After one has downloaded all the newest packages, to chunk these files for ease of transport, onto DVDs, one may use:
+```bash
+$ zip -0 -s 8G pool.zip -r archive.ubuntu.com/ubuntu/pool
+```

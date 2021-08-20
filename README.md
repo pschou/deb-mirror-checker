@@ -9,10 +9,25 @@ The intended purpose of this tool is to be able to scan a mirror quickly for any
 # Usage
 
 ```bash
-$ ./ubunt-mirror-checker
+$ ./ubuntu-mirror-checker 
 Ubunbtu mirror checker
-Usage:
-  make [path...] - generate all the .sum files in a directory
-  check [file]   - Read in Packages.gz and verify all the files
 
+Usage:
+  list [package...]  - Use "Packages" and dump out a list of repo files and their size
+  make [path...]  - generate all the .sum files in a directory
+  check [package...] - Use "Packages" to verify all the local repo files
+  mtime [date] [baseurl] [package...] - Use "Packages" and dump out a list of remote files and their size modified after date.
+
+Note: Your current working directory, "/home/schou/go/src/ubuntu-mirror-checker", must be the repo base directory.
+  One can use Packages in .gz or .xz format and the file can be a local file or a URL endpoint.
+
+```
+
+# Example
+
+Let's say we want to download only the newest files for a package, we can do this easily using this along with wget:
+```bash
+$ ./ubuntu-mirror-checker mtime 2021-08-01 https://archive.ubuntu.com/ubuntu https://archive.ubuntu.com/ubuntu/dists/focal-updates/main/binary-amd64/Packages.xz > newer.list
+$ sed 's#^[0-9]* #https://archive.ubuntu.com/ubuntu/#' newer.list > newer_url.list
+$ wget -nc -np -i newer_url.list
 ```

@@ -1,16 +1,14 @@
-# A basic Ubuntu/Debian mirror checker
+# A basic Debian/Ubuntu mirror Checker
 
-The intended purpose of this tool is to be able to scan a mirror quickly for any files that are corrupted by providing these files to the commandline of this checker program.  For example:
+The intended purposes of this tool is to be a mirror maintainer.  With this one can quickly scan for any corrupted repository files, make lists of files and their sizes for easy chunking into removable media, or selectively download packages which are newer than a specified date.
 
-```bash
-./ubunt-mirror-checker $( find dists/ -type f -mtime -10 -name Packages.gz )
-```
+Overall, a debian/ubuntu maintainer / checker
 
 # Usage
 
 ```bash
-$ ./ubuntu-mirror-checker 
-Ubunbtu mirror checker
+$ ./deb-mirror-checker 
+Debian mirror checker
 
 Usage:
   list [package...]  - Use "Packages" and dump out a list of repo files and their size
@@ -23,11 +21,23 @@ Note: Your current working directory, "/home/schou/go/src/ubuntu-mirror-checker"
 
 ```
 
-# Example
+# Examples
 
-Let's say we want to download only the newest files for a package, we can do this easily using this along with wget:
+To grab a list of all the files defined in Packages.gz:
 ```bash
-$ ./ubuntu-mirror-checker mtime 2021-08-01 https://archive.ubuntu.com/ubuntu https://archive.ubuntu.com/ubuntu/dists/focal-updates/main/binary-amd64/Packages.xz > newer.list
+./deb-mirror-checker $( find dists/ -type f -name Packages.gz )
+```
+
+Let's say we want to download only the newest files for a particular Packages, we can do this easily using this along with wget:
+```bash
+$ ./deb-mirror-checker mtime 2021-08-01 https://archive.ubuntu.com/ubuntu https://archive.ubuntu.com/ubuntu/dists/focal-updates/main/binary-amd64/Packages.xz > newer.list
+$ sed 's#^[0-9]* #https://archive.ubuntu.com/ubuntu/#' newer.list > newer_url.list
+$ wget -nc -x -i newer_url.list
+```
+
+If one has already downloaded the Packages files and wants to instead, say, download all the newest repo files in this list:
+```bash
+$ ./deb-mirror-checker mtime 2021-07-01 https://archive.ubuntu.com/ubuntu $( find archive.ubuntu.com/ubuntu/dists/ -name Packages.gz ) > newer.list
 $ sed 's#^[0-9]* #https://archive.ubuntu.com/ubuntu/#' newer.list > newer_url.list
 $ wget -nc -x -i newer_url.list
 ```

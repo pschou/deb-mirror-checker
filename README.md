@@ -53,7 +53,7 @@ $ zip -0 -s 8G pool.zip -r archive.ubuntu.com/ubuntu/pool
 
 Verify using a PGP keyring:
 ```bash
-$ deb-mirror-checker verify /tmp/Hokeypuck.pgp $( find dists/ -name InRelease )
+$ deb-mirror-checker verify /tmp/Hockeypuck_keys.pgp $( find dists/ -name InRelease )
 Loaded KeyID: 0x5EDB1B62EC4926EA
 Loaded KeyID: 0x871920D1991BC93C
 Loaded KeyID: 0x3B4FE6ACC0B21F32

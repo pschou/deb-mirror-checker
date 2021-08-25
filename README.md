@@ -19,7 +19,7 @@ Usage:
   mtime [date] [baseurl] [package...] - Use "Packages" and dump out a list of remote files and their size modified after date.
   sum [package...]                  - Use "Packages" and total the number unique files and their size
 
-Note: Your current working directory, "/tmp/mirror.umd.edu/ubuntu", must be the repo base directory.
+Note: Your current working directory, "/tmp", must be the repo base directory.
 Packages can be also provided in .gz or .xz formats and the file can be a local file or a URL endpoint.
 ```
 

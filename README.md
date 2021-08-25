@@ -29,7 +29,12 @@ Return code 0 means that all checksums are correct, and exitcode 1 means at leas
 
 To grab a list of all the files defined in Packages.gz:
 ```bash
-$ deb-mirror-checker $( find dists/ -type f -name Packages.gz )
+$ deb-mirror-checker list $( find dists/ -type f -name Packages.gz )
+```
+
+Determine the entire size of the required files for the repository:
+```bash
+$ deb-mirror-checker sum $( find dists/ -type f -name Packages.gz )
 ```
 
 Let's say we want to download only the newest files for a particular Packages, we can do this easily using this along with wget:
@@ -51,7 +56,12 @@ After one has downloaded all the newest packages, to chunk these files for ease 
 $ zip -0 -s 8G pool.zip -r archive.ubuntu.com/ubuntu/pool
 ```
 
-Verify using a PGP keyring:
+Verify using Packages.gz:
+```bash
+$ deb-mirror-checker check $( find dists/ -type f -name Packages.gz )
+```
+
+Verify using a PGP keyring and InRelease files:
 ```bash
 $ deb-mirror-checker verify /tmp/Hockeypuck_keys.pgp $( find dists/ -name InRelease )
 Loaded KeyID: 0x5EDB1B62EC4926EA

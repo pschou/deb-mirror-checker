@@ -17,17 +17,17 @@ package main
 import (
 	"bufio"
 	"compress/gzip"
+	"errors"
 	"fmt"
 	"io"
 	"log"
 	"os"
-	"path"
 	"strings"
 
 	"github.com/ulikunitz/xz"
 )
 
-func parse(name string) {
+func parse(name string) (err error) {
 	fmt.Println("Checking", name)
 
 	var zr io.Reader
@@ -42,16 +42,14 @@ func parse(name string) {
 		if strings.HasSuffix(name, ".gz") {
 			gzr, err := gzip.NewReader(resp.Body)
 			if err != nil {
-				log.Println(err)
-				return
+				return err
 			}
 			defer gzr.Close()
 			zr = io.Reader(gzr)
 		} else if strings.HasSuffix(name, ".xz") {
 			xzr, err := xz.NewReader(resp.Body)
 			if err != nil {
-				log.Println(err)
-				return
+				return err
 			}
 			//defer xzr.Close()
 			defer func() { xzr = nil }()
@@ -64,24 +62,21 @@ func parse(name string) {
 
 		file, err := os.OpenFile(name, os.O_RDONLY, 0666)
 		if err != nil {
-			log.Println(err)
-			return
+			return err
 		}
 		defer file.Close()
 
 		if strings.HasSuffix(name, ".gz") {
 			gzr, err := gzip.NewReader(file)
 			if err != nil {
-				log.Println(err)
-				return
+				return err
 			}
 			defer gzr.Close()
 			zr = io.Reader(gzr)
 		} else if strings.HasSuffix(name, ".xz") {
 			xzr, err := xz.NewReader(file)
 			if err != nil {
-				log.Println(err)
-				return
+				return err
 			}
 			//defer xzr.Close()
 			defer func() { xzr = nil }()
@@ -92,9 +87,14 @@ func parse(name string) {
 	}
 
 	scanner := bufio.NewScanner(zr)
-	var size, h_sha512, h_sha256, h_sha1, h_md5, filename string
-parse_line:
-	for line := scanner.Text(); scanner.Scan(); line = scanner.Text() {
+	var line, filename string
+	sums := make(map[string]string)
+	for {
+		if scanner.Scan() {
+			line = scanner.Text()
+		} else {
+			break
+		}
 		parts := strings.SplitN(line, ": ", 2)
 		val := ""
 		if len(parts) == 2 {
@@ -103,84 +103,28 @@ parse_line:
 		switch parts[0] {
 		case "Filename":
 			filename = val
-		case "Size":
-			size = val
-		case "MD5sum":
-			h_md5 = val
-		case "SHA1":
-			h_sha1 = val
-		case "SHA256":
-			h_sha256 = val
-		case "SHA512":
-			h_sha512 = val
+		case "Size", "MD5sum", "SHA1", "SHA256", "SHA512":
+			sums[parts[0]] = val
 		case "":
 			if filename != "" {
-
-				/*if _, err := os.Stat(filename); os.IsNotExist(err) {
+				if _, err := os.Stat(filename); os.IsNotExist(err) {
 					fmt.Println("missing", filename)
-					continue parse_line
-				}*/
-
-				dir_name, file_name := path.Split(filename)
-				sum_name := path.Join(dir_name, fmt.Sprintf(".%s.sum", file_name))
-
-				if _, err := os.Stat(sum_name); os.IsNotExist(err) {
-					processFile(filename)
+					continue
 				}
-
-				sum_file, err := os.OpenFile(sum_name, os.O_RDONLY, 0666)
-				if err != nil {
-					//log.Println(err)
-					fmt.Println("missing", filename)
-					continue parse_line
-					//return
-				}
-				//defer sum_file.Close()
-
-				sum_scanner := bufio.NewScanner(sum_file)
-				for line := sum_scanner.Text(); sum_scanner.Scan(); line = sum_scanner.Text() {
-					parts := strings.SplitN(line, ": ", 2)
-					val := ""
-					if len(parts) == 2 {
-						val = strings.TrimSpace(parts[1])
+				file_sums := getSums(filename)
+				for k, v := range sums {
+					if file_sums[k] != v {
+						fmt.Printf("getsums: %+v\n", file_sums)
+						fmt.Printf("Failed_%s %s (%s != %s)\n", k, filename, file_sums[k], v)
+						err = errors.New("failed verification")
+						continue
 					}
-					switch parts[0] {
-					case "Size":
-						if size != val {
-							fmt.Println("failed", filename)
-							sum_file.Close()
-							continue parse_line
-						}
-					case "MD5sum":
-						if h_md5 != val {
-							fmt.Println("failed", filename)
-							sum_file.Close()
-							continue parse_line
-						}
-					case "SHA1":
-						if h_sha1 != val {
-							fmt.Println("failed", filename)
-							sum_file.Close()
-							continue parse_line
-						}
-					case "SHA256":
-						if h_sha256 != val {
-							fmt.Println("failed", filename)
-							sum_file.Close()
-							continue parse_line
-						}
-					case "SHA512":
-						if h_sha512 != val && h_sha512 != "" {
-							fmt.Println("failed", filename)
-							sum_file.Close()
-							continue parse_line
-						}
-					}
+					delete(sums, k)
 				}
-				sum_file.Close()
-				size, h_sha512, h_sha256, h_sha1, h_md5, filename = "", "", "", "", "", ""
+
 			}
 
 		}
 	}
+	return
 }

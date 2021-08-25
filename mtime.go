@@ -92,8 +92,13 @@ func mtime(name string, mt time.Time, url string) {
 	}
 
 	scanner := bufio.NewScanner(zr)
-	var filename, size string
-	for line := scanner.Text(); scanner.Scan(); line = scanner.Text() {
+	var filename, size, line string
+	for {
+		if scanner.Scan() {
+			line = scanner.Text()
+		} else {
+			break
+		}
 		parts := strings.SplitN(line, ": ", 2)
 		val := ""
 		if len(parts) == 2 {

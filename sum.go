@@ -21,12 +21,21 @@ import (
 	"io"
 	"log"
 	"os"
+	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/ulikunitz/xz"
 )
 
-func list(name string) {
+type sum_passback struct {
+	lock       sync.Mutex
+	file_sizes map[string]string
+	count      uint
+	total      uint64
+}
+
+func sum(name string, pb *sum_passback) {
 
 	var zr io.Reader
 
@@ -109,7 +118,19 @@ func list(name string) {
 			size = val
 		case "":
 			if filename != "" {
-				fmt.Println(size, filename)
+				fsize, ok := pb.file_sizes[filename]
+				if ok {
+					if size != fsize {
+						fmt.Println("Warning", filename, "has two different sizes,", fsize, "and", size)
+					}
+				} else {
+					val, err := strconv.ParseUint(size, 10, 64)
+					if err == nil {
+						pb.file_sizes[filename] = size
+						pb.total = pb.total + val
+						pb.count++
+					}
+				}
 			}
 			filename, size = "", ""
 			continue

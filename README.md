@@ -23,6 +23,8 @@ Note: Your current working directory, "/tmp/mirror.umd.edu/ubuntu", must be the 
 Packages can be also provided in .gz or .xz formats and the file can be a local file or a URL endpoint.
 ```
 
+Return code 0 means that all checksums are correct, and exitcode 1 means at least one checksum did not match.  The output may be string matched for the word missing to detect any files not verified.  The idea here is, it is better to know when one has a bad file more than when a file is missing, hence the exitcode boolean.
+
 # Examples
 
 To grab a list of all the files defined in Packages.gz:

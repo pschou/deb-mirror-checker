@@ -63,15 +63,14 @@ $ deb-mirror-checker check $( find dists/ -type f -name Packages.gz )
 
 Verify using a PGP keyring on InRelease files:
 ```bash
-$ deb-mirror-checker verify /tmp/Hockeypuck_keys.pgp $( find dists/ -name InRelease )
-Loading keys from /tmp/Hockeypuck.key
+$ deb-mirror-checker verify /tmp/Hokeypuck.key dists/bionic-proposed/InRelease |head
+Loading keys from /tmp/Hokeypuck.key
   1) Loaded KeyID: 0x5EDB1B62EC4926EA
   2) Loaded KeyID: 0x3B4FE6ACC0B21F32
   3) Loaded KeyID: 0x871920D1991BC93C
   4) Loaded KeyID: 0x40976EAF437D05B5
-Verifying dists/bionic/InRelease - Signed by 0x3B4FE6ACC0B21F32 at 2018-04-26 19:38:40 -0400 EDT
-Verifying dists/bionic-backports/InRelease - Signed by 0x3B4FE6ACC0B21F32 at 2021-08-25 08:17:30 -0400 EDT
-Verifying dists/bionic-proposed/InRelease - Signed by 0x3B4FE6ACC0B21F32 at 2021-08-25 08:17:28 -0400 EDT
+Verifying dists/bionic-proposed/InRelease has been signed by 0x3B4FE6ACC0B21F32 at 2021-08-25 08:17:28 -0400 EDT...
+...
 ```
 
 Verify image files using SHA256SUMS files:

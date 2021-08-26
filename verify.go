@@ -244,12 +244,21 @@ func verify(name string, keyring openpgp.KeyRing) (err error) {
 	} else {
 		for filename, sums := range file_hashes {
 			if _, err := os.Stat(filename); os.IsNotExist(err) {
+				// If the file does not exist, test to see if it is in the dist
+				// directory with the InRelease file
 				d, _ := path.Split(name)
 				test_filename := path.Join(d, filename)
 				if _, err := os.Stat(test_filename); !os.IsNotExist(err) {
+					// Found it, so we'll test on this file name
 					filename = test_filename
 				} else {
-					if _, err := os.Stat(test_filename + ".gz"); os.IsNotExist(err) {
+					// We did not find it, so let us see if any of the compressed/uncompressed alternatives are there
+					test_filename = strings.TrimSuffix(strings.TrimSuffix(test_filename, ".gz"), ".xz")
+					switch {
+					case func() bool { _, err := os.Stat(test_filename); return !os.IsNotExist(err) }():
+					case func() bool { _, err := os.Stat(test_filename + ".gz"); return !os.IsNotExist(err) }():
+					case func() bool { _, err := os.Stat(test_filename + ".xz"); return !os.IsNotExist(err) }():
+					default:
 						fmt.Println("missing", filename)
 					}
 					continue

@@ -21,7 +21,6 @@ import (
 	"strings"
 
 	"github.com/araddon/dateparse"
-	"golang.org/x/crypto/openpgp"
 )
 
 var version = ""
@@ -40,33 +39,16 @@ func main() {
 			}
 		}
 	} else if len(os.Args) > 2 && os.Args[1] == "verify" {
-		keyRingReader, err := os.Open(os.Args[2])
-		var keyring, loaded_keys openpgp.EntityList
+		keyRing, err := loadKeys(os.Args[2])
 		if err != nil {
 			fmt.Println("Error opening keyring file:", err)
-		}
-		if err == nil {
-			for err == nil {
-				loaded_keys, err = openpgp.ReadArmoredKeyRing(keyRingReader)
-				for _, key := range loaded_keys {
-					keyring = append(keyring, key)
-				}
-			}
-			if len(keyring) > 0 {
-				err = nil
-			}
-		}
-		if err != nil {
 			for _, name := range os.Args[3:] {
 				verify(name, nil)
 			}
 			os.Exit(1)
 		}
-		for _, entity := range []*openpgp.Entity(keyring) {
-			fmt.Printf("Loaded KeyID: 0x%02X\n", entity.PrimaryKey.KeyId)
-		}
 		for _, name := range os.Args[3:] {
-			err := verify(name, keyring)
+			err := verify(name, keyRing)
 			if err != nil {
 				fmt.Println("error:", err)
 				exitcode = 1
@@ -100,7 +82,7 @@ func main() {
 		fmt.Println("Usage:\n",
 			" added [package_old] [package_new] - Compare two \"Packages\" and list files added with their size.\n",
 			" check [package...]                - Use \"Packages\" to validate checksums of all the local repo files\n",
-			" verify PGP_pub_keys [package...]  - Verify PGP signature in \"InRelease\" and validate checksums\n",
+			" verify PGP_KeyRing.pub [package...] - Verify PGP signature in \"InRelease\" and validate checksums\n",
 			" list [package...]                 - Use \"Packages\" and dump out a list of repo files and their size\n",
 			" make [path...]                    - generate all the .sum files in a directory\n",
 			" mtime [date] [baseurl] [package...] - Use \"Packages\" and dump out a list of remote files and their size modified after date.\n",

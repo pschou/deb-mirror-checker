@@ -61,7 +61,7 @@ Verify using Packages.gz:
 $ deb-mirror-checker check $( find dists/ -type f -name Packages.gz )
 ```
 
-Verify using a PGP keyring on InRelease files:
+Verify chain of custody using a PGP keyring and deb packages using the InRelease files:
 ```bash
 $ deb-mirror-checker verify /tmp/Hockeypuck.keys dists/bionic-proposed/InRelease
 Loading keys from /tmp/Hokeypuck.key
@@ -73,7 +73,7 @@ Verifying dists/bionic-proposed/InRelease has been signed by 0x3B4FE6ACC0B21F32 
 ...
 ```
 
-Verify image files using SHA256SUMS files:
+Verify chain of custody using a PGP keyring and the image file checksums using SHA256SUMS files:
 ```bash
 $ deb-mirror-checker verify /tmp/Hockeypuck.keys $( find dists/ -name SHA256SUMS.gpg )
 Loading keys from /tmp/Hockeypuck.key

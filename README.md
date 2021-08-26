@@ -63,7 +63,7 @@ $ deb-mirror-checker check $( find dists/ -type f -name Packages.gz )
 
 Verify using a PGP keyring on InRelease files:
 ```bash
-$ deb-mirror-checker verify /tmp/Hokeypuck.key dists/bionic-proposed/InRelease |head
+$ deb-mirror-checker verify /tmp/Hokeypuck.key dists/bionic-proposed/InRelease
 Loading keys from /tmp/Hokeypuck.key
   1) Loaded KeyID: 0x5EDB1B62EC4926EA
   2) Loaded KeyID: 0x3B4FE6ACC0B21F32
